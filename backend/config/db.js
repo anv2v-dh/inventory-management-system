@@ -2,44 +2,42 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 const path = require('path');
 
-// Connect to SQLite database
-const dbPath = path.resolve(__dirname, '../../inventory.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) console.error("Database error: " + err.message);
-});
+const dbPath = path.resolve(__dirname, '../inventory.db');
+const db = new sqlite3.Database(dbPath);
 
-// Create tables using raw SQL
 db.serialize(() => {
+    // Users Table
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE,
         password TEXT
     )`);
 
+    // Suppliers Table
     db.run(`CREATE TABLE IF NOT EXISTS suppliers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        email TEXT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
         phone TEXT
     )`);
 
+    // Products Table
     db.run(`CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
+        name TEXT NOT NULL,
         description TEXT,
-        price REAL,
-        quantity INTEGER,
+        price REAL NOT NULL,
+        quantity INTEGER NOT NULL,
         supplier_id INTEGER,
         image_url TEXT,
-        FOREIGN KEY(supplier_id) REFERENCES suppliers(id)
+        FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
     )`);
 
-    // Create a default admin user if it doesn't exist
-    db.get("SELECT * FROM users WHERE username = 'admin'", async (err, row) => {
+    db.get("SELECT * FROM users WHERE username = ?", ['arnav'], async (err, row) => {
         if (!row) {
-            // hash the password safely
-            let hashed = await bcrypt.hash('admin123', 10);
-            db.run("INSERT INTO users (username, password) VALUES (?, ?)", ['admin', hashed]);
+            const hashedPassword = await bcrypt.hash('arnav456', 10);
+            db.run("INSERT INTO users (username, password) VALUES (?, ?)", ['arnav', hashedPassword]);
+            console.log("Default user created: arnav / arnav456");
         }
     });
 });
