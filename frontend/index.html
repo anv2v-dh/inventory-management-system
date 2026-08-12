@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Auth Page (Login / Register) -->
+    <div id="login-page" class="page active">
+        <div class="login-box">
+            <h2 id="auth-title">Admin Login</h2>
+            <form id="auth-form">
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit" id="auth-btn">Login</button>
+                <p id="auth-error" class="error-text"></p>
+            </form>
+            <p style="margin-top: 15px; font-size: 0.9em;">
+                <span id="toggle-msg">Need an account?</span> 
+                <a href="#" id="toggle-auth-mode" onclick="toggleAuthMode()" style="color:#007bff;">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard-page" class="page">
+        <nav>
+            <h2>Inventory App</h2>
+            <div>
+                <button onclick="showSection('products')">Products</button>
+                <button onclick="showSection('suppliers')">Suppliers</button>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </div>
+        </nav>
+
+        <div class="container">
+            
+            <!-- Products Section -->
+            <div id="products-section" class="section active">
+                <h3>Product List</h3>
+                <div class="controls">
+                    <input type="text" id="search-product" placeholder="Search by name..." onkeyup="filterProducts()">
+                    <select id="filter-supplier" onchange="filterProducts()">
+                        <option value="">All Suppliers</option>
+                    </select>
+                    <button onclick="toggleProductForm()">+ Add Product</button>
+                </div>
+
+                <form id="add-product-form" class="hidden">
+                    <h4>Add New Product</h4>
+                    <input type="text" id="prod-name" placeholder="Product Name" required>
+                    <input type="text" id="prod-desc" placeholder="Description">
+                    <input type="number" id="prod-price" placeholder="Price (Rs.)" min="0" required>
+                    <input type="number" id="prod-qty" placeholder="Quantity" min="0" required>
+                    <select id="prod-supplier" required></select>
+                    <input type="file" id="prod-image" accept="image/*" required>
+                    <button type="submit">Save Product</button>
+                </form>
+
+                <table id="products-table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Supplier</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-body"></tbody>
+                </table>
+            </div>
+
+            <!-- Suppliers Section -->
+            <div id="suppliers-section" class="section hidden">
+                <h3>Supplier List</h3>
+                <form id="add-supplier-form">
+                    <input type="text" id="supp-name" placeholder="Supplier Name" required>
+                    <input type="email" id="supp-email" placeholder="Email" required>
+                    <input type="text" id="supp-phone" placeholder="Phone">
+                    <button type="submit">+ Add Supplier</button>
+                </form>
+                
+                <table id="suppliers-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="suppliers-body"></tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
