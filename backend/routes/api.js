@@ -79,6 +79,19 @@ router.post('/suppliers', verifyToken, (req, res) => {
     });
 });
 
+router.put('/suppliers/:id', verifyToken, (req, res) => {
+    const { name, email, phone } = req.body;
+    if (!name || !email) {
+        return res.status(400).json({ error: "Name and email are required" });
+    }
+
+    db.run("UPDATE suppliers SET name = ?, email = ?, phone = ? WHERE id = ?", 
+        [name, email, phone, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Supplier updated successfully" });
+    });
+});
+
 router.delete('/suppliers/:id', verifyToken, (req, res) => {
     // Check if supplier has linked products before deleting
     db.get("SELECT COUNT(*) as count FROM products WHERE supplier_id = ?", [req.params.id], (err, row) => {

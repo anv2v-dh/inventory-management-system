@@ -78,12 +78,19 @@ async function loadData() {
     filterSelect.innerHTML = '<option value="">All Suppliers</option>';
 
     suppliers.forEach(s => {
+        const safeName = (s.name || '').replace(/'/g, "\\'");
+        const safeEmail = (s.email || '').replace(/'/g, "\\'");
+        const safePhone = (s.phone || '').replace(/'/g, "\\'");
+
         suppBody.innerHTML += `
             <tr>
                 <td>${s.name}</td>
                 <td>${s.email}</td>
-                <td>${s.phone}</td>
-                <td><button onclick="deleteSupplier(${s.id})" style="background:#d9534f; color:white;">Delete</button></td>
+                <td>${s.phone || 'N/A'}</td>
+                <td>
+                    <button onclick="editSupplier(${s.id}, '${safeName}', '${safeEmail}', '${safePhone}')">Edit</button>
+                    <button onclick="deleteSupplier(${s.id})" style="background:#d9534f; color:white;">Delete</button>
+                </td>
             </tr>`;
         suppSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
         filterSelect.innerHTML += `<option value="${s.name}">${s.name}</option>`;
@@ -209,6 +216,30 @@ async function deleteProduct(id) {
         const res = await fetch(`/api/products/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        if (res.ok) {
+            loadData();
+        } else {
+            const err = await res.json();
+            alert("Error: " + err.error);
+        }
+    }
+}
+
+async function editSupplier(id, currentName, currentEmail, currentPhone) {
+    const newName = prompt("Enter new supplier name:", currentName);
+    const newEmail = prompt("Enter new supplier email:", currentEmail);
+    const newPhone = prompt("Enter new supplier phone:", currentPhone);
+
+    if (newName && newEmail) {
+        const res = await fetch(`/api/suppliers/${id}`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify({ name: newName, email: newEmail, phone: newPhone })
         });
 
         if (res.ok) {
