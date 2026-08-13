@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const db = require('../config/db');
 const path = require('path');
+const { validateProduct, validateSupplier } = require('../middleware/validate');
 
 // Setup Multer for image uploads
 const storage = multer.diskStorage({
@@ -15,7 +16,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Middleware to protect routes
+// Middleware to protect routes via JWT
 function verifyToken(req, res, next) {
     const bearerHeader = req.headers['authorization'];
     if (typeof bearerHeader !== 'undefined') {
@@ -68,10 +69,8 @@ router.get('/suppliers', verifyToken, (req, res) => {
     });
 });
 
-router.post('/suppliers', verifyToken, (req, res) => {
+router.post('/suppliers', verifyToken, validateSupplier, (req, res) => {
     const { name, email, phone } = req.body;
-    if (!name || !email) return res.status(400).json({ error: "Name and email are required" });
-
     db.run("INSERT INTO suppliers (name, email, phone) VALUES (?, ?, ?)", 
         [name, email, phone], function(err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -79,12 +78,8 @@ router.post('/suppliers', verifyToken, (req, res) => {
     });
 });
 
-router.put('/suppliers/:id', verifyToken, (req, res) => {
+router.put('/suppliers/:id', verifyToken, validateSupplier, (req, res) => {
     const { name, email, phone } = req.body;
-    if (!name || !email) {
-        return res.status(400).json({ error: "Name and email are required" });
-    }
-
     db.run("UPDATE suppliers SET name = ?, email = ?, phone = ? WHERE id = ?", 
         [name, email, phone, req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -93,7 +88,6 @@ router.put('/suppliers/:id', verifyToken, (req, res) => {
 });
 
 router.delete('/suppliers/:id', verifyToken, (req, res) => {
-    // Check if supplier has linked products before deleting
     db.get("SELECT COUNT(*) as count FROM products WHERE supplier_id = ?", [req.params.id], (err, row) => {
         if (row && row.count > 0) {
             return res.status(400).json({ error: "Cannot delete supplier with linked products." });
@@ -118,12 +112,8 @@ router.get('/products', verifyToken, (req, res) => {
     });
 });
 
-router.post('/products', verifyToken, upload.single('image'), (req, res) => {
+router.post('/products', verifyToken, upload.single('image'), validateProduct, (req, res) => {
     const { name, description, price, quantity, supplier_id } = req.body;
-    if (!name || price < 0 || quantity < 0) {
-        return res.status(400).json({ error: "Invalid data. Price and quantity cannot be negative." });
-    }
-
     let imageUrl = req.file ? '/uploads/' + req.file.filename : '';
 
     db.run(`INSERT INTO products (name, description, price, quantity, supplier_id, image_url) 
@@ -134,12 +124,8 @@ router.post('/products', verifyToken, upload.single('image'), (req, res) => {
     });
 });
 
-router.put('/products/:id', verifyToken, (req, res) => {
+router.put('/products/:id', verifyToken, validateProduct, (req, res) => {
     const { price, quantity } = req.body;
-    if (price < 0 || quantity < 0) {
-        return res.status(400).json({ error: "Price and quantity cannot be negative" });
-    }
-
     db.run("UPDATE products SET price = ?, quantity = ? WHERE id = ?", 
         [price, quantity, req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
